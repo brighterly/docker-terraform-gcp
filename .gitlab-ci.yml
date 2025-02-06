@@ -1,0 +1,69 @@
+stages:
+  - build
+  - merge
+
+variables:
+  IMAGE: brighterly/terraform-gcp
+
+default:
+  image: docker:26
+  services:
+    - docker:26
+  before_script:
+    - docker info
+    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+
+#
+# Build stage
+#
+
+.build:
+  stage: build
+  script:
+    - cd $DIR
+    - docker build --platform $PLATFORM -t $IMAGE:$TAG .
+    - docker push $IMAGE:$TAG
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - '$DIR/**'
+
+build-terraform-gcp-arm:
+  extends: .build
+  variables:
+    DIR: terraform-gcp
+    TAG: terraform-gcp-arm64
+    PLATFORM: linux/arm64
+  tags:
+    - saas-linux-small-arm64
+
+build-terraform-gcp-alpine-amd:
+  extends: .build
+  variables:
+    DIR: terraform-gcp-alpine
+    TAG: terraform-gcp-alpine-amd64
+    PLATFORM: linux/amd64
+
+#
+# Merge stage
+#
+
+manifest-terraform-gcp:
+  stage: merge
+  script:
+    - docker manifest create $IMAGE:terraform-gcp
+        --amend $IMAGE:terraform-gcp-amd64
+        --amend $IMAGE:terraform-gcp-arm64
+    - docker manifest push $IMAGE:terraform-gcp
+  only:
+    - main
+
+manifest-terraform-gcp-alpine:
+  stage: merge
+  script:
+    - docker manifest create $IMAGE:terraform-gcp-alpine
+        --amend $IMAGE:terraform-gcp-alpine-amd64
+        --amend $IMAGE:terraform-gcp-alpine-arm64
+    - docker manifest push $IMAGE:terraform-gcp-alpine
+  only:
+    - main
