@@ -9,6 +9,7 @@ RUN apk add --no-cache \
       py3-crcmod
 
 ENV TERRAFORM_VERSION=1.9.8
+
 RUN curl -fsSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip \
     && unzip terraform.zip \
     && mv terraform /usr/local/bin/ \
