@@ -32,7 +32,7 @@ build-terraform-gcp-arm:
   extends: .build
   variables:
     DIR: terraform-gcp
-    TAG: terraform-gcp-arm64
+    TAG: alpine-arm64
     PLATFORM: linux/arm64
   tags:
     - saas-linux-small-arm64
@@ -40,8 +40,8 @@ build-terraform-gcp-arm:
 build-terraform-gcp-alpine-amd:
   extends: .build
   variables:
-    DIR: terraform-gcp-alpine
-    TAG: terraform-gcp-alpine-amd64
+    DIR: terraform-gcp
+    TAG: alpine-amd64
     PLATFORM: linux/amd64
 
 #
@@ -52,18 +52,8 @@ manifest-terraform-gcp:
   stage: merge
   script:
     - docker manifest create $IMAGE:terraform-gcp
-        --amend $IMAGE:terraform-gcp-amd64
-        --amend $IMAGE:terraform-gcp-arm64
+        --amend $IMAGE:alpine-amd64
+        --amend $IMAGE:alpine-arm64
     - docker manifest push $IMAGE:terraform-gcp
-  only:
-    - main
-
-manifest-terraform-gcp-alpine:
-  stage: merge
-  script:
-    - docker manifest create $IMAGE:terraform-gcp-alpine
-        --amend $IMAGE:terraform-gcp-alpine-amd64
-        --amend $IMAGE:terraform-gcp-alpine-arm64
-    - docker manifest push $IMAGE:terraform-gcp-alpine
   only:
     - main
